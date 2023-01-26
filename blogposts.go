@@ -17,7 +17,7 @@ func NewPostsFromFS(filesystem fs.FS) ([]Post, error) {
 
 	var posts []Post
 	for _, f := range dir {
-		post, err := getPost(filesystem, f)
+		post, err := getPost(filesystem, f.Name())
 		if err != nil {
 			// TODO: needs clarification
 			// Should we totally fail if one file fails?
@@ -29,9 +29,9 @@ func NewPostsFromFS(filesystem fs.FS) ([]Post, error) {
 	return posts, nil
 }
 
-func getPost(filesystem fs.FS, f fs.DirEntry) (Post, error) {
+func getPost(filesystem fs.FS, fileName string) (Post, error) {
 	// Opening the file in the given filesystem
-	postFile, err := filesystem.Open(f.Name())
+	postFile, err := filesystem.Open(fileName)
 	if err != nil {
 		return Post{}, err
 	}
@@ -39,13 +39,15 @@ func getPost(filesystem fs.FS, f fs.DirEntry) (Post, error) {
 	defer postFile.Close()
 
 	// Reading file contents
+	return newPost(postFile)
+}
+
+func newPost(postFile io.Reader) (Post, error) {
 	postData, err := io.ReadAll(postFile)
 	if err != nil {
 		return Post{}, err
 	}
 
-	// Very trivial parsing,
-	// just slicing the `Title: ` which is of length 7
 	post := Post{Title: string(postData[7:])}
 	return post, nil
 }

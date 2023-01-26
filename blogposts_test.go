@@ -39,11 +39,13 @@ func TestNewBlogPosts(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		got := posts[0]
-		want := blogposts.Post{Title: "Post 1"}
-
-		if !reflect.DeepEqual(got, want) {
-			t.Errorf("got %+v, want %+v", got, want)
-		}
+		assertPost(t, posts[0], blogposts.Post{Title: "Post 1"})
 	})
+}
+
+func assertPost(t *testing.T, got, want blogposts.Post) {
+	t.Helper()
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %+v, want %+v", got, want)
+	}
 }
