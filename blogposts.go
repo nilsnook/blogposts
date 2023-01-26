@@ -2,6 +2,8 @@ package blogposts
 
 import (
 	"bufio"
+	"bytes"
+	"fmt"
 	"io"
 	"io/fs"
 	"strings"
@@ -11,6 +13,7 @@ type Post struct {
 	Title       string
 	Description string
 	Tags        []string
+	Body        string
 }
 
 func NewPostsFromFS(filesystem fs.FS) ([]Post, error) {
@@ -60,13 +63,28 @@ func newPost(postFile io.Reader) (Post, error) {
 		return strings.TrimPrefix(scanner.Text(), tagName)
 	}
 
+	// Title
 	title := readMetaLine(titleSeparator)
+	// Description
 	description := readMetaLine(descriptionSeparator)
+	// Tags
 	tags := strings.Split(readMetaLine(tagsSeparator), ",")
+
+	// Ignore a line, for separtor `---`
+	scanner.Scan()
+
+	// Body
+	// Scan until there is nothing left to scan
+	buf := bytes.Buffer{}
+	for scanner.Scan() {
+		fmt.Fprintln(&buf, scanner.Text())
+	}
+	body := strings.TrimSuffix(buf.String(), "\n")
 
 	return Post{
 		Title:       title,
 		Description: description,
 		Tags:        tags,
+		Body:        body,
 	}, nil
 }
