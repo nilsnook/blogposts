@@ -2,12 +2,11 @@ package blogposts
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"io/fs"
 	"strings"
-
-	"go.uber.org/zap/buffer"
 )
 
 type Post struct {
@@ -87,7 +86,7 @@ func readBody(scanner *bufio.Scanner) string {
 
 	// Body
 	// Scan until there is nothing left to scan
-	buf := buffer.Buffer{}
+	buf := bytes.Buffer{}
 	for scanner.Scan() {
 		fmt.Fprintln(&buf, scanner.Text())
 	}
