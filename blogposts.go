@@ -2,11 +2,12 @@ package blogposts
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"io"
 	"io/fs"
 	"strings"
+
+	"go.uber.org/zap/buffer"
 )
 
 type Post struct {
@@ -69,17 +70,8 @@ func newPost(postFile io.Reader) (Post, error) {
 	description := readMetaLine(descriptionSeparator)
 	// Tags
 	tags := strings.Split(readMetaLine(tagsSeparator), ",")
-
-	// Ignore a line, for separtor `---`
-	scanner.Scan()
-
 	// Body
-	// Scan until there is nothing left to scan
-	buf := bytes.Buffer{}
-	for scanner.Scan() {
-		fmt.Fprintln(&buf, scanner.Text())
-	}
-	body := strings.TrimSuffix(buf.String(), "\n")
+	body := readBody(scanner)
 
 	return Post{
 		Title:       title,
@@ -87,4 +79,20 @@ func newPost(postFile io.Reader) (Post, error) {
 		Tags:        tags,
 		Body:        body,
 	}, nil
+}
+
+func readBody(scanner *bufio.Scanner) string {
+	// Ignore a line, for separtor `---`
+	scanner.Scan()
+
+	// Body
+	// Scan until there is nothing left to scan
+	buf := buffer.Buffer{}
+	for scanner.Scan() {
+		fmt.Fprintln(&buf, scanner.Text())
+	}
+
+	// Trim the last newline character added by `Fprintln`
+	// in the for loop and return the string
+	return strings.TrimSuffix(buf.String(), "\n")
 }
